@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
+import Card, { CardHeader, CardContent, CardFooter } from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 import { mockInterviews, mockUser } from '../data/mockData';
 import { formatDuration, getDifficultyColor, getStatusColor } from '../utils';
 

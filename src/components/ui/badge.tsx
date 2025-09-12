@@ -6,7 +6,7 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ 
+const Badge: React.FC<BadgeProps> = ({ 
   variant = 'default', 
   className, 
   children, 
@@ -29,3 +29,5 @@ export const Badge: React.FC<BadgeProps> = ({
     </span>
   );
 };
+
+export default Badge;
