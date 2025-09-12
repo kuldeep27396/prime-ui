@@ -244,7 +244,7 @@ export const useRealTimeChat = (roomId: string, userId: string, wsService: any) 
     };
   }, [wsService, roomId, userId]);
 
-  const sendMessage = (message: string, type: string = 'text') => {
+  const sendMessage = (message: string, type: 'text' | 'system' | 'file' = 'text') => {
     if (wsService) {
       wsService.sendChatMessage(roomId, message);
       
