@@ -1,3 +1,3 @@
-export { Button } from './Button';
-export { Card, CardHeader, CardContent, CardFooter } from './Card';
-export { Badge } from './Badge';
+export { Button } from './Button.tsx';
+export { Card, CardHeader, CardContent, CardFooter } from './Card.tsx';
+export { Badge } from './Badge.tsx';
