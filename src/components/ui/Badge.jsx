@@ -1,12 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils';
 
-interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'secondary' | 'outline' | 'success' | 'warning' | 'error';
-  children: React.ReactNode;
-}
-
-const Badge: React.FC<BadgeProps> = ({ 
+const Badge = ({ 
   variant = 'default', 
   className, 
   children, 
