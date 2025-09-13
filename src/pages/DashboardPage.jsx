@@ -4,24 +4,38 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, X
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { user, interviews, skillAssessments, learningResources } from '../data/mockData'
+import { useUser } from '@clerk/clerk-react'
+import { useUserData } from '../hooks/useUserData'
+import { learningResources } from '../data/mockData'
 
 export default function DashboardPage() {
-  const upcomingInterviews = interviews.filter(i => i.status === 'upcoming')
-  const completedInterviews = interviews.filter(i => i.status === 'completed')
-  const avgScore = completedInterviews.reduce((acc, i) => acc + (i.score || 0), 0) / completedInterviews.length
+  const { user } = useUser()
+  const { userData, loading, getUserStats } = useUserData()
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
-  // Analytics data
+  const stats = getUserStats()
+
+  // Analytics data - generate based on user's actual interviews
   const progressData = [
     { month: 'Jan', score: 65, interviews: 2 },
     { month: 'Feb', score: 72, interviews: 3 },
     { month: 'Mar', score: 78, interviews: 4 },
     { month: 'Apr', score: 85, interviews: 2 },
-    { month: 'May', score: 88, interviews: 5 },
-    { month: 'Jun', score: 92, interviews: 3 }
+    { month: 'May', score: 88, interviews: Math.max(1, Math.floor(stats.completedCount / 2)) },
+    { month: 'Jun', score: stats.averageScore || 92, interviews: stats.completedCount }
   ]
 
-  const skillRadarData = skillAssessments.map(skill => ({
+  const skillRadarData = userData.skillAssessments.map(skill => ({
     skill: skill.skill.split(' ')[0],
     score: skill.score
   }))
@@ -33,13 +47,14 @@ export default function DashboardPage() {
     { name: 'Coding', value: 10, color: '#EF4444' }
   ]
 
-  const aiTips = `## 🤖 AI-Powered Recommendations
+  const aiTips = `## 🤖 AI-Powered Recommendations for ${user?.firstName || 'You'}
 
 Based on your recent performance, here are personalized tips to improve your interview skills:
 
 ### 💡 Focus Areas
-- **System Design**: Your score is 73%. Practice designing scalable systems
-- **JavaScript**: Strong performance! Consider advanced topics like closures and async patterns
+${userData.skillAssessments.map(skill => 
+  `- **${skill.skill}**: Your score is ${skill.score}%. ${skill.score < 70 ? 'Focus on improvement' : skill.score < 85 ? 'Good progress, keep practicing' : 'Excellent! Consider advanced topics'}`
+).join('\n')}
 
 ### 📚 Recommended Study Plan
 \`\`\`python
@@ -64,6 +79,7 @@ def solve_interview_problem(problem):
 1. Complete 3 system design practice sessions
 2. Solve 5 LeetCode medium problems
 3. Practice explaining your thought process out loud
+${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming interview${stats.upcomingCount > 1 ? 's' : ''}` : '4. Schedule your next practice interview'}
 `
 
   const formatDate = (dateString) => {
@@ -83,16 +99,25 @@ def solve_interview_problem(problem):
           className="mb-8"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                Welcome back, {user.name}! 👋
-              </h1>
-              <p className="text-slate-600 flex items-center">
-                <span className="badge bg-blue-100 text-blue-800 border-blue-200 mr-3">
-                  {user.role}
-                </span>
-                {user.experience} experience • Ready to ace your next technical interview?
-              </p>
+            <div className="flex items-center space-x-4">
+              {user?.imageUrl && (
+                <img 
+                  src={user.imageUrl} 
+                  alt={user.firstName}
+                  className="w-16 h-16 rounded-full border-4 border-white shadow-lg"
+                />
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                  Welcome back, {user?.firstName || 'there'}! 👋
+                </h1>
+                <p className="text-slate-600 flex items-center">
+                  <span className="badge bg-blue-100 text-blue-800 border-blue-200 mr-3">
+                    {userData.profile.role}
+                  </span>
+                  {userData.profile.experience} • {user?.primaryEmailAddress?.emailAddress}
+                </p>
+              </div>
             </div>
             <Link to="/schedule" className="btn-primary">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +144,7 @@ def solve_interview_problem(problem):
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-blue-700">Total Interviews</p>
-                <p className="text-2xl font-bold text-blue-900">{interviews.length}</p>
+                <p className="text-2xl font-bold text-blue-900">{stats.totalInterviews}</p>
               </div>
             </div>
           </motion.div>
@@ -138,7 +163,7 @@ def solve_interview_problem(problem):
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-green-700">Completed</p>
-                <p className="text-2xl font-bold text-green-900">{completedInterviews.length}</p>
+                <p className="text-2xl font-bold text-green-900">{stats.completedCount}</p>
               </div>
             </div>
           </motion.div>
@@ -157,7 +182,7 @@ def solve_interview_problem(problem):
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-purple-700">Average Score</p>
-                <p className="text-2xl font-bold text-purple-900">{Math.round(avgScore)}%</p>
+                <p className="text-2xl font-bold text-purple-900">{stats.averageScore}%</p>
               </div>
             </div>
           </motion.div>
@@ -176,11 +201,35 @@ def solve_interview_problem(problem):
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-orange-700">Upcoming</p>
-                <p className="text-2xl font-bold text-orange-900">{upcomingInterviews.length}</p>
+                <p className="text-2xl font-bold text-orange-900">{stats.upcomingCount}</p>
               </div>
             </div>
           </motion.div>
         </div>
+
+        {/* Empty State for New Users */}
+        {stats.totalInterviews === 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="card text-center py-12 mb-8"
+          >
+            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Welcome to Prime Interviews!</h2>
+            <p className="text-slate-600 mb-6 max-w-2xl mx-auto">
+              Get started by scheduling your first mock interview. Our AI-powered platform will help you practice 
+              technical interviews and improve your skills with personalized feedback.
+            </p>
+            <Link to="/schedule" className="btn-primary btn-lg">
+              Schedule Your First Interview
+            </Link>
+          </motion.div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
@@ -204,46 +253,48 @@ def solve_interview_problem(problem):
             </motion.div>
 
             {/* Interview Types */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="card"
-            >
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Interview Types Distribution</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={interviewTypeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {interviewTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-3">
-                  {interviewTypeData.map((type, index) => (
-                    <div key={index} className="flex items-center">
-                      <div 
-                        className="w-4 h-4 rounded mr-3" 
-                        style={{ backgroundColor: type.color }}
-                      ></div>
-                      <span className="text-sm text-slate-700">{type.name}</span>
-                      <span className="ml-auto text-sm font-medium">{type.value}%</span>
-                    </div>
-                  ))}
+            {stats.totalInterviews > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="card"
+              >
+                <h2 className="text-xl font-semibold text-slate-900 mb-6">Interview Types Distribution</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={interviewTypeData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {interviewTypeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-3">
+                    {interviewTypeData.map((type, index) => (
+                      <div key={index} className="flex items-center">
+                        <div 
+                          className="w-4 h-4 rounded mr-3" 
+                          style={{ backgroundColor: type.color }}
+                        ></div>
+                        <span className="text-sm text-slate-700">{type.name}</span>
+                        <span className="ml-auto text-sm font-medium">{type.value}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            )}
 
             {/* Skills Radar */}
             <motion.div 
@@ -317,31 +368,40 @@ def solve_interview_problem(problem):
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-slate-900">Upcoming Interviews</h2>
                 <Link to="/schedule" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  View all
+                  {stats.upcomingCount > 0 ? 'View all' : 'Schedule'}
                 </Link>
               </div>
               <div className="space-y-4">
-                {upcomingInterviews.slice(0, 3).map((interview) => (
-                  <div key={interview.id} className="flex items-center p-3 bg-slate-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <span className="text-lg">🏢</span>
+                {stats.upcomingCount > 0 ? (
+                  stats.upcomingInterviews.slice(0, 3).map((interview) => (
+                    <div key={interview.id} className="flex items-center p-3 bg-slate-50 rounded-lg">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <span className="text-lg">🏢</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 truncate">{interview.company}</p>
+                        <p className="text-sm text-slate-500">{interview.title}</p>
+                        <p className="text-xs text-slate-400">
+                          {interview.scheduledAt && formatDate(interview.scheduledAt)}
+                        </p>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        interview.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
+                        interview.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {interview.type}
+                      </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{interview.company}</p>
-                      <p className="text-sm text-slate-500">{interview.position}</p>
-                      <p className="text-xs text-slate-400">
-                        {interview.scheduledAt && formatDate(interview.scheduledAt)}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      interview.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                      interview.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {interview.difficulty}
-                    </span>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500 mb-4">No upcoming interviews scheduled</p>
+                    <Link to="/schedule" className="btn-secondary btn-sm">
+                      Schedule Interview
+                    </Link>
                   </div>
-                ))}
+                )}
               </div>
             </motion.div>
 

@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
 import InterviewPage from './pages/InterviewPage'
 import SchedulePage from './pages/SchedulePage'
+import CompanyScreeningPage from './pages/CompanyScreeningPage'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/interviews" element={<InterviewPage />} />
           <Route path="/schedule" element={<SchedulePage />} />
+          <Route path="/screening" element={<CompanyScreeningPage />} />
           <Route path="/skills" element={<DashboardPage />} />
         </Routes>
       </div>
