@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import InterviewPage from './pages/InterviewPage'
 import SchedulePage from './pages/SchedulePage'
 import CompanyScreeningPage from './pages/CompanyScreeningPage'
+import InterviewRoomPage from './pages/InterviewRoomPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/screening" element={<CompanyScreeningPage />} />
           <Route path="/skills" element={<DashboardPage />} />
+          <Route path="/interview-room/:roomCode" element={<InterviewRoomPage />} />
         </Routes>
       </div>
     </Router>

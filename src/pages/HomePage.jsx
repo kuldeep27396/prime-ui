@@ -1,14 +1,27 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import DemoModal from '../components/DemoModal'
 
 export default function HomePage() {
+  const navigate = useNavigate()
+  const [showDemo, setShowDemo] = useState(false)
+
+  const handleDemoNavigate = (tab) => {
+    if (tab === 'schedule') {
+      navigate('/schedule')
+    } else {
+      navigate('/dashboard')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="gradient-bg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative pt-20 pb-32 lg:pb-40">
-              <div className="text-center">
+            <div className="relative pt-16 sm:pt-20 pb-24 sm:pb-32 lg:pb-40 z-10">
+              <div className="text-center relative z-20">
                 <div className="mb-6">
                   <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-white/20 text-white border border-white/30">
                     <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -17,24 +30,27 @@ export default function HomePage() {
                     AI-Powered Interview Platform
                   </span>
                 </div>
-                <h1 className="text-5xl lg:text-7xl font-bold text-white mb-8 leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 sm:mb-8 leading-tight px-4 sm:px-0">
                   Ace Your{' '}
                   <span className="bg-gradient-to-r from-emerald-300 to-blue-300 bg-clip-text text-transparent">
                     Next Interview
                   </span>
                 </h1>
-                <p className="text-xl lg:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+                <p className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 sm:mb-12 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0">
                   Whether you're practicing alone, learning from mentors, or screening candidates -
                   we've got the perfect AI interview solution for you.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link to="/dashboard" className="btn-primary btn-lg">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0 relative z-30">
+                  <Link to="/dashboard" className="btn-primary btn-lg text-center relative z-30">
                     Try Free Interview
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </Link>
-                  <button className="btn-outline btn-lg bg-white/10 border-white/30 text-white hover:bg-white/20">
+                  <button
+                    onClick={() => setShowDemo(true)}
+                    className="btn-outline btn-lg bg-white/10 border-white/30 text-white hover:bg-white/20 text-center relative z-30"
+                  >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.5a4.5 4.5 0 000-9H9v9zm4 0h1.5a4.5 4.5 0 000-9H13v9z" />
                     </svg>
@@ -45,28 +61,28 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-purple-600/20 z-0"></div>
       </div>
 
       {/* Three Use Cases Section */}
-      <div className="py-20 bg-white">
+      <div className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 sm:mb-6">
               Choose Your Interview Experience
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
               Three powerful ways to prepare for your next opportunity or find the perfect candidate
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* AI Mock Interviews */}
-            <div className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 border border-blue-100 hover:shadow-2xl hover:scale-105 transition-all duration-300">
-              <div className="absolute -top-4 -right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+            <div className="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-blue-100 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+              <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-blue-500 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold">
                 Most Popular
               </div>
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -431,6 +447,13 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Demo Modal */}
+      <DemoModal
+        isOpen={showDemo}
+        onClose={() => setShowDemo(false)}
+        onNavigate={handleDemoNavigate}
+      />
     </div>
   )
 }

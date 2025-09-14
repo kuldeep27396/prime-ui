@@ -2,11 +2,14 @@ import { useState, useMemo, useEffect } from 'react'
 import toast, { Toaster } from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { useUser } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router-dom'
 import { mentors, companyLogos, skillCategories, companies } from '../data/mentors'
 import { getUserData } from '../data/userSessions'
+import { generateRoomCode, createRoomUrl } from '../config/hmsConfig'
 
 export default function SchedulePage() {
   const { isSignedIn, user } = useUser()
+  const navigate = useNavigate()
   const [selectedMentor, setSelectedMentor] = useState(null)
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -16,7 +19,9 @@ export default function SchedulePage() {
   const [bookingDetails, setBookingDetails] = useState({
     sessionType: 'Mock Technical Interview',
     duration: 60,
-    specialRequests: ''
+    specialRequests: '',
+    meetingType: 'video', // video, audio, in-person
+    recordSession: false
   })
   const [filters, setFilters] = useState({
     skills: [],
@@ -111,17 +116,51 @@ export default function SchedulePage() {
     setBookingDetails({
       sessionType: 'Mock Technical Interview',
       duration: 60,
-      specialRequests: ''
+      specialRequests: '',
+      meetingType: 'video',
+      recordSession: false
     })
     setShowBookingModal(true)
   }
 
   const handleBookingSubmit = () => {
-    toast.success(`Booking request sent to ${selectedMentor.name}! They'll respond within ${selectedMentor.responseTime.toLowerCase()}.`)
+    if (bookingDetails.meetingType === 'video') {
+      const roomCode = generateRoomCode()
+      const roomUrl = `/interview-room/${roomCode}?type=mentor&mentor=${encodeURIComponent(selectedMentor.name)}&duration=${bookingDetails.duration}&role=participant`
+
+      toast.success(
+        <div>
+          <p>Booking confirmed with {selectedMentor.name}!</p>
+          <button
+            onClick={() => navigate(roomUrl)}
+            className="mt-2 btn-primary btn-sm"
+          >
+            Join Video Call
+          </button>
+        </div>,
+        { duration: 8000 }
+      )
+    } else {
+      toast.success(`Booking request sent to ${selectedMentor.name}! They'll respond within ${selectedMentor.responseTime.toLowerCase()}.`)
+    }
+
     setShowBookingModal(false)
     setSelectedMentor(null)
     setBookingStep(1)
     setSelectedTimeSlot(null)
+  }
+
+  const handleInstantVideoCall = (mentor) => {
+    if (!isSignedIn) {
+      toast.error('Please sign in to start a video call')
+      return
+    }
+
+    const roomCode = generateRoomCode()
+    const roomUrl = `/interview-room/${roomCode}?type=mentor&mentor=${encodeURIComponent(mentor.name)}&duration=60&role=participant`
+
+    toast.success(`Starting video call with ${mentor.name}...`)
+    navigate(roomUrl)
   }
 
   const handleTimeSlotSelect = (slot) => {
@@ -399,12 +438,12 @@ export default function SchedulePage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Minimum Rating
                   </label>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center flex-wrap gap-2">
                     {[0, 4.0, 4.5, 4.7, 4.8].map((rating) => (
                       <button
                         key={rating}
                         onClick={() => setFilters({...filters, rating})}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex-shrink-0 ${
                           filters.rating === rating
                             ? 'bg-emerald-500 text-white'
                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -700,12 +739,24 @@ export default function SchedulePage() {
                               </svg>
                             </button>
                           )}
-                          <button
-                            onClick={() => handleBookMentor(mentor)}
-                            className="btn-primary btn-sm"
-                          >
-                            {hasSessionHistory ? 'Book Again' : 'Book Session'}
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleInstantVideoCall(mentor)}
+                              className="btn-primary btn-sm bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700"
+                              title="Start instant video call"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              Call Now
+                            </button>
+                            <button
+                              onClick={() => handleBookMentor(mentor)}
+                              className="btn-outline btn-sm"
+                            >
+                              {hasSessionHistory ? 'Schedule Again' : 'Schedule'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -935,6 +986,83 @@ export default function SchedulePage() {
                   </div>
                 </div>
 
+                {/* Meeting Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Meeting Type
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setBookingDetails({...bookingDetails, meetingType: 'video'})}
+                      className={`p-3 text-center border rounded-lg transition-all ${
+                        bookingDetails.meetingType === 'video'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center mb-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="font-medium text-sm">Video Call</div>
+                      <div className="text-xs opacity-75">HD video + audio</div>
+                    </button>
+                    <button
+                      onClick={() => setBookingDetails({...bookingDetails, meetingType: 'audio'})}
+                      className={`p-3 text-center border rounded-lg transition-all ${
+                        bookingDetails.meetingType === 'audio'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center mb-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <div className="font-medium text-sm">Audio Only</div>
+                      <div className="text-xs opacity-75">Voice call</div>
+                    </button>
+                    <button
+                      onClick={() => setBookingDetails({...bookingDetails, meetingType: 'in-person'})}
+                      className={`p-3 text-center border rounded-lg transition-all ${
+                        bookingDetails.meetingType === 'in-person'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center mb-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div className="font-medium text-sm">In Person</div>
+                      <div className="text-xs opacity-75">Meet locally</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Recording Option */}
+                {(bookingDetails.meetingType === 'video' || bookingDetails.meetingType === 'audio') && (
+                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="recordSession"
+                      checked={bookingDetails.recordSession}
+                      onChange={(e) => setBookingDetails({...bookingDetails, recordSession: e.target.checked})}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <label htmlFor="recordSession" className="text-sm text-slate-700 cursor-pointer">
+                      <span className="font-medium">Record session</span>
+                      <span className="block text-xs text-slate-500 mt-1">
+                        Get a recording for review later (with mentor's consent)
+                      </span>
+                    </label>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Special Requests (Optional)
@@ -967,6 +1095,31 @@ export default function SchedulePage() {
                   <div className="flex justify-between">
                     <span className="text-slate-600">Duration:</span>
                     <span className="font-medium">{bookingDetails.duration} minutes</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Meeting Type:</span>
+                    <span className="font-medium capitalize flex items-center">
+                      {bookingDetails.meetingType === 'video' && (
+                        <svg className="w-4 h-4 mr-2 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                      {bookingDetails.meetingType === 'audio' && (
+                        <svg className="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      )}
+                      {bookingDetails.meetingType === 'in-person' && (
+                        <svg className="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                      {bookingDetails.meetingType.replace('-', ' ')}
+                      {bookingDetails.recordSession && bookingDetails.meetingType !== 'in-person' && (
+                        <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">Recording</span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between border-t border-slate-200 pt-3">
                     <span className="text-slate-600">Total Cost:</span>
