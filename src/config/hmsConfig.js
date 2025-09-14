@@ -10,7 +10,8 @@ export const HMS_CONFIG = {
   // This is for development/testing only. Use backend API in production.
   appSecret: 'my5Dp-limb-XI8Cq70YaodGmPJ838Plvyzy2dD861k3n1i0md98n8eUYd70HllZteN7FNRlu0THSvpNsWif1q6sW9n9LfmS19RXVz-ZwKhJvNpMhZxgdXF4MIbfjDjly6mohlJDlXc3ll3TQyYY5aI4zjOGEt3Z0MYXdRAqDgSo=',
 
-  roomId: '68c65881a5ba8326e6eb84fe',
+  appId: '68c6586bbd0dab5f9a013c31', // Same as accessKey for 100ms
+  roomId: '0e1da1f9-75c5-4fd7-a60e-21eecb6efb2a', // The UUID room ID from 100ms
   templateId: '68c65881033903926e620516',
 
   // Template IDs for different room types (using the same template for now)
@@ -42,33 +43,34 @@ export const createRoomUrl = (roomCode, role = 'participant') => {
   return `${window.location.origin}/interview-room/${roomCode}?role=${role}`
 }
 
-// Generate simple UUID for browser compatibility
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+// Import browser-compatible JWT utilities
+import { create100msToken, generateUUID } from '../utils/browserJWT'
 
-// Generate mock auth token for demo purposes
-// IMPORTANT: In production, this MUST be generated on your backend!
+// Generate real 100ms auth token in the browser
+// WARNING: This exposes app secret in frontend - only for development!
 export const generateHMSToken = async (roomCode, userName, role = 'guest') => {
   try {
-    console.log('Generating demo token for:', { roomCode, userName, role })
+    console.log('Generating 100ms token for:', { roomCode, userName, role })
 
-    // For demo purposes, return a mock token
-    // In production, you need to call your backend API that will use the 100ms Management API
-    const mockToken = `demo_token_${generateUUID()}`
+    const userId = `${userName.replace(/\s+/g, '_')}_${generateUUID().substring(0, 8)}`
 
-    console.log('Generated demo token (replace with backend call):', mockToken)
+    const tokenConfig = {
+      accessKey: HMS_CONFIG.accessKey,
+      appSecret: HMS_CONFIG.appSecret,
+      roomId: HMS_CONFIG.roomId,
+      userId: userId,
+      role: role
+    }
 
-    // This is a placeholder - you'll need to implement proper backend token generation
-    throw new Error('Demo mode: Please implement backend token generation for production use')
+    const authToken = create100msToken(tokenConfig)
+
+    console.log('Generated 100ms auth token:', authToken.substring(0, 50) + '...')
+
+    return authToken
 
   } catch (error) {
     console.error('Token generation error:', error.message)
-    throw new Error('This is demo mode. For production, implement backend token generation using 100ms Management API')
+    throw new Error(`Failed to generate 100ms token: ${error.message}`)
   }
 }
 

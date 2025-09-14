@@ -2,14 +2,24 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { HMSRoomProvider } from '@100mslive/react-sdk'
+import toast from 'react-hot-toast'
 import VideoInterviewRoom from '../components/VideoInterviewRoom'
 import { generateRoomCode } from '../config/hmsConfig'
 
 export default function InterviewRoomPage() {
+  console.log('InterviewRoomPage mounting...');
   const { roomCode } = useParams()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user } = useUser()
+
+  useEffect(() => {
+    console.log('InterviewRoomPage mounted with:', {
+      roomCode,
+      user,
+      loading: true
+    });
+  }, []);
 
   const [roomData, setRoomData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -64,8 +74,25 @@ export default function InterviewRoomPage() {
     )
   }
 
+  console.log('Preparing HMS configuration...');
+
+  // Prepare HMS configuration
+  const hmsConfig = {
+    authToken: null, // Will be set during join
+    settings: {
+      isAudioMuted: true, // Start with audio muted
+      isVideoMuted: false,
+      initialiseRoom: true,
+      captureNetworkQualityInPreview: true,
+    },
+    onError: (error) => {
+      console.error('HMS Error:', error);
+      toast.error(`Video call error: ${error.message}`);
+    }
+  };
+
   return (
-    <HMSRoomProvider>
+    <HMSRoomProvider {...hmsConfig}>
       <VideoInterviewRoom
         roomCode={roomCode}
         userName={user.fullName || user.firstName || 'Anonymous'}

@@ -5,15 +5,19 @@ import './index.css'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { emailService } from './services/emailService'
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_demo_key'
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key")
+// Log warning if using demo key
+if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+  console.warn("⚠️  Using demo Clerk key. Please set VITE_CLERK_PUBLISHABLE_KEY in your .env file for full functionality.")
 }
 
-// Initialize EmailJS
-emailService.init()
+// Initialize email service
+try {
+  emailService.init()
+} catch (error) {
+  console.error('Email service initialization failed:', error)
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

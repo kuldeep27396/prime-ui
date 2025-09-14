@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   useHMSStore,
   useHMSActions,
@@ -12,7 +12,7 @@ import {
 } from '@100mslive/react-sdk'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { generateHMSToken } from '../config/hmsConfig'
+import { HMS_CONFIG } from '../config/hmsConfig'
 
 export default function VideoInterviewRoom({
   roomCode,
@@ -22,28 +22,55 @@ export default function VideoInterviewRoom({
   interviewType = 'mock',
   duration = 60
 }) {
-  // For demo mode, we'll simulate the HMS state without actual connection
-  const [isConnected, setIsConnected] = useState(false)
+  console.log('VideoInterviewRoom mounted with props:', {
+    roomCode,
+    userName,
+    role,
+    interviewType,
+    duration
+  })
+
+  // Initialize HMS
+  useEffect(() => {
+    console.log('Initializing HMS SDK with config:', {
+      roomId: HMS_CONFIG.roomId,
+      appId: HMS_CONFIG.appId,
+      accessKey: HMS_CONFIG.accessKey,
+    });
+
+    // Initialize HMS SDK
+    hmsActions.initialize()
+      .then(() => {
+        console.log('HMS SDK initialized successfully');
+        // Try auto-joining if we have the required info
+        if (roomCode && userName && !isConnected) {
+          joinRoom().catch(console.error);
+        }
+      })
+      .catch(err => {
+        console.error('HMS SDK initialization failed:', err);
+        toast.error('Failed to initialize video call system');
+      });
+
+    // Cleanup on unmount
+    return () => {
+      console.log('Cleaning up HMS connection...');
+      hmsActions.leave().catch(console.error);
+    };
+  }, [hmsActions]);
+
+  // Real HMS hooks for actual video connection
+  const hmsActions = useHMSActions()
+  const isConnected = useHMSStore(selectIsConnectedToRoom)
+  const localPeer = useHMSStore(selectLocalPeer)
+  const remotePeers = useHMSStore(selectRemotePeers)
+  const isLocalAudioEnabled = useHMSStore(selectIsLocalAudioEnabled)
+  const isLocalVideoEnabled = useHMSStore(selectIsLocalVideoEnabled)
+
   const [isJoining, setIsJoining] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(duration * 60)
   const [isRecording, setIsRecording] = useState(false)
   const [showChat, setShowChat] = useState(false)
-  const [isLocalAudioEnabled, setIsLocalAudioEnabled] = useState(true)
-  const [isLocalVideoEnabled, setIsLocalVideoEnabled] = useState(true)
-
-  // Demo mode - simulate HMS hooks
-  const hmsActions = {
-    join: () => Promise.resolve(),
-    leave: () => Promise.resolve(),
-    setLocalAudioEnabled: (enabled) => setIsLocalAudioEnabled(enabled),
-    setLocalVideoEnabled: (enabled) => setIsLocalVideoEnabled(enabled)
-  }
-
-  // Demo peers for display
-  const localPeer = isConnected ? { id: 'local', name: userName } : null
-  const remotePeers = isConnected ? [
-    { id: 'demo-peer-1', name: 'AI Interviewer' }
-  ] : []
 
   useEffect(() => {
     if (isConnected && timeRemaining > 0) {
@@ -64,23 +91,73 @@ export default function VideoInterviewRoom({
   const joinRoom = async () => {
     setIsJoining(true)
     try {
-      // For demo purposes, show video call interface without actual connection
-      console.log('Demo mode: Simulating video call for:', { roomCode, userName, role })
+      if (!roomCode) {
+        throw new Error('Room code is required')
+      }
 
-      // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      // Generate auth token with HMS_CONFIG values
+      console.log('Attempting to connect to 100ms room:', {
+        roomId: HMS_CONFIG.roomId,
+        userName,
+        role,
+        templateId: HMS_CONFIG.templateId
+      })
 
-      // "Connect" to demo room
-      setIsConnected(true)
+      const authToken = create100msToken({
+        roomId: HMS_CONFIG.roomId,
+        userId: userName,
+        role: role,
+        appId: HMS_CONFIG.appId,
+        templateId: HMS_CONFIG.templateId
+      });
 
-      toast.success('Demo: Video call interface loaded! (Connect backend for real calls)')
+      console.log('Generated auth token:', authToken)
 
-      // Show demo message
-      toast.info('This is demo mode. Implement backend token generation for live video calls.', { duration: 5000 })
+      // Join the actual 100ms room
+      await hmsActions.join({
+        authToken,
+        userName,
+        settings: {
+          isAudioMuted: false,
+          isVideoMuted: false
+        }
+      })
+
+      toast.success('🎥 Connected to live video call!')
+      console.log('Successfully joined 100ms room')
 
     } catch (error) {
-      console.error('Demo mode error:', error)
-      toast.error('Demo mode active. Backend integration needed for live video calls.')
+      console.error('Failed to join 100ms room:', error)
+
+      // More user-friendly error messages
+      let errorMessage = 'Connection failed: '
+      if (error.message.includes('invalid room id')) {
+        errorMessage += 'Invalid room code. Please ensure the room exists in your 100ms dashboard.'
+        console.error('Room ID being used:', HMS_CONFIG.roomId)
+      } else if (error.message.includes('permission denied')) {
+        errorMessage += 'Permission denied. Please check your role and room access settings.'
+        console.error('Role being used:', role)
+      } else if (error.message.includes('token')) {
+        errorMessage += 'Authentication failed. Please check your 100ms credentials.'
+        console.error('Token generation config:', {
+          roomId: HMS_CONFIG.roomId,
+          appId: HMS_CONFIG.appId,
+          templateId: HMS_CONFIG.templateId
+        })
+      } else {
+        errorMessage += error.message
+      }
+
+      toast.error(errorMessage)
+
+      // Log the full configuration for debugging
+      console.log('100ms Configuration:', {
+        roomId: HMS_CONFIG.roomId,
+        appId: HMS_CONFIG.appId,
+        templateId: HMS_CONFIG.templateId,
+        role,
+        userName
+      })
     } finally {
       setIsJoining(false)
     }
@@ -89,7 +166,6 @@ export default function VideoInterviewRoom({
   const handleLeaveRoom = async () => {
     try {
       await hmsActions.leave()
-      setIsConnected(false)
       onLeave?.()
       toast.success('Left interview room')
     } catch (error) {
@@ -99,12 +175,10 @@ export default function VideoInterviewRoom({
 
   const toggleAudio = () => {
     hmsActions.setLocalAudioEnabled(!isLocalAudioEnabled)
-    toast.success(isLocalAudioEnabled ? 'Audio muted' : 'Audio unmuted')
   }
 
   const toggleVideo = () => {
     hmsActions.setLocalVideoEnabled(!isLocalVideoEnabled)
-    toast.success(isLocalVideoEnabled ? 'Video disabled' : 'Video enabled')
   }
 
   const formatTime = (seconds) => {
@@ -112,6 +186,15 @@ export default function VideoInterviewRoom({
     const secs = seconds % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
+
+  // Debug logs
+  console.log('Room state:', {
+    isConnected,
+    localPeer,
+    remotePeers,
+    isLocalAudioEnabled,
+    isLocalVideoEnabled
+  })
 
   if (!isConnected) {
     return (
@@ -184,9 +267,8 @@ export default function VideoInterviewRoom({
 
       {/* Video Grid */}
       <div className="flex-1 p-4">
-        <div className={`grid gap-4 h-[calc(100vh-200px)] ${
-          remotePeers.length === 0 ? 'grid-cols-1' : 'grid-cols-2'
-        }`}>
+        <div className={`grid gap-4 h-[calc(100vh-200px)] ${remotePeers.length === 0 ? 'grid-cols-1' : 'grid-cols-2'
+          }`}>
           {/* Local Peer Video */}
           {localPeer && (
             <VideoTile
@@ -215,11 +297,10 @@ export default function VideoInterviewRoom({
         <div className="flex items-center justify-center space-x-4">
           <button
             onClick={toggleAudio}
-            className={`p-3 rounded-full transition-colors ${
-              isLocalAudioEnabled
-                ? 'bg-slate-600 hover:bg-slate-500 text-white'
-                : 'bg-red-600 hover:bg-red-700 text-white'
-            }`}
+            className={`p-3 rounded-full transition-colors ${isLocalAudioEnabled
+              ? 'bg-slate-600 hover:bg-slate-500 text-white'
+              : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
           >
             {isLocalAudioEnabled ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,11 +316,10 @@ export default function VideoInterviewRoom({
 
           <button
             onClick={toggleVideo}
-            className={`p-3 rounded-full transition-colors ${
-              isLocalVideoEnabled
-                ? 'bg-slate-600 hover:bg-slate-500 text-white'
-                : 'bg-red-600 hover:bg-red-700 text-white'
-            }`}
+            className={`p-3 rounded-full transition-colors ${isLocalVideoEnabled
+              ? 'bg-slate-600 hover:bg-slate-500 text-white'
+              : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
           >
             {isLocalVideoEnabled ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,35 +347,41 @@ export default function VideoInterviewRoom({
 }
 
 function VideoTile({ peer, isLocal, isAudioEnabled = true, isVideoEnabled = true }) {
+  const videoRef = useRef(null);
+  const videoTrack = useHMSStore(selectCameraStreamByPeerID(peer.id));
+
+  useEffect(() => {
+    if (videoRef.current && videoTrack) {
+      if (videoTrack.enabled) {
+        videoTrack.attach(videoRef.current);
+      } else {
+        videoTrack.detach();
+      }
+    }
+  }, [videoTrack]);
+
   return (
-    <div className="relative bg-slate-800 rounded-lg overflow-hidden">
-      {/* Demo video placeholder */}
-      <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
-        {isVideoEnabled ? (
-          <div className="text-center">
-            <div className="w-20 h-20 bg-slate-600 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <div className="text-slate-300 text-sm">
-              {isLocal ? 'Your Camera' : `${peer.name}'s Camera`}
-            </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Demo Mode
-            </div>
-          </div>
-        ) : (
+    <div className="relative bg-slate-800 rounded-lg overflow-hidden aspect-video">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={isLocal}
+        className={`w-full h-full object-cover ${!isVideoEnabled || !videoTrack?.enabled ? 'hidden' : ''}`}
+      />
+
+      {(!videoTrack?.enabled || !isVideoEnabled) && (
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
           <div className="text-center">
             <div className="w-20 h-20 bg-slate-600 rounded-full flex items-center justify-center mb-4">
               <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
             <div className="text-slate-400 text-sm">Camera Off</div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="absolute bottom-4 left-4 bg-black/50 rounded-lg px-3 py-1">
         <span className="text-white text-sm font-medium">

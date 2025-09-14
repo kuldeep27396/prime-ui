@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { mentors, companyLogos, skillCategories, companies } from '../data/mentors'
 import { getUserData } from '../data/userSessions'
 import { generateRoomCode, createRoomUrl } from '../config/hmsConfig'
+import { emailService } from '../services/emailService'
 
 export default function SchedulePage() {
   const { isSignedIn, user } = useUser()
@@ -123,25 +124,92 @@ export default function SchedulePage() {
     setShowBookingModal(true)
   }
 
-  const handleBookingSubmit = () => {
-    if (bookingDetails.meetingType === 'video') {
-      const roomCode = generateRoomCode()
-      const roomUrl = `/interview-room/${roomCode}?type=mentor&mentor=${encodeURIComponent(selectedMentor.name)}&duration=${bookingDetails.duration}&role=participant`
+  const handleBookingSubmit = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      toast.error('Please sign in to confirm your booking')
+      return
+    }
 
-      toast.success(
-        <div>
-          <p>Booking confirmed with {selectedMentor.name}!</p>
-          <button
-            onClick={() => navigate(roomUrl)}
-            className="mt-2 btn-primary btn-sm"
-          >
-            Join Video Call
-          </button>
-        </div>,
-        { duration: 8000 }
-      )
-    } else {
-      toast.success(`Booking request sent to ${selectedMentor.name}! They'll respond within ${selectedMentor.responseTime.toLowerCase()}.`)
+    try {
+      // Generate room link for video calls
+      let roomUrl = ''
+      if (bookingDetails.meetingType === 'video') {
+        const roomCode = generateRoomCode()
+        roomUrl = `${window.location.origin}/interview-room/${roomCode}?type=mentor&mentor=${encodeURIComponent(selectedMentor.name)}&duration=${bookingDetails.duration}&role=participant`
+      }
+
+      // Format the date and time
+      const now = new Date()
+      const meetingDate = new Date(selectedTimeSlot).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+      const meetingTime = new Date(selectedTimeSlot).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      })
+
+      // Send confirmation email
+      await emailService.sendMeetingInvitation({
+        to_email: user.primaryEmailAddress.emailAddress,
+        to_name: user.firstName || 'Candidate',
+        meeting_title: `${bookingDetails.sessionType} with ${selectedMentor.name}`,
+        meeting_date: meetingDate,
+        meeting_time: meetingTime,
+        meeting_duration: `${bookingDetails.duration} minutes`,
+        meeting_description: `You have scheduled a ${bookingDetails.sessionType.toLowerCase()} session with ${selectedMentor.name} from ${selectedMentor.currentCompany}. ${bookingDetails.specialRequests ? `Special requests: ${bookingDetails.specialRequests}` : ''}`,
+        meeting_link: roomUrl || 'Meeting details will be shared separately'
+      })
+
+      if (bookingDetails.meetingType === 'video') {
+        toast.success(
+          <div>
+            <p>✅ Booking confirmed with {selectedMentor.name}!</p>
+            <p className="text-sm mt-1">📧 Confirmation email sent to {user.primaryEmailAddress.emailAddress}</p>
+            <button
+              onClick={() => navigate(`/interview-room/${generateRoomCode()}?type=mentor&mentor=${encodeURIComponent(selectedMentor.name)}&duration=${bookingDetails.duration}&role=participant`)}
+              className="mt-2 btn-primary btn-sm"
+            >
+              Join Video Call
+            </button>
+          </div>,
+          { duration: 10000 }
+        )
+      } else {
+        toast.success(
+          <div>
+            <p>✅ Booking request sent to {selectedMentor.name}!</p>
+            <p className="text-sm mt-1">📧 Confirmation email sent to {user.primaryEmailAddress.emailAddress}</p>
+            <p className="text-sm">They'll respond within {selectedMentor.responseTime.toLowerCase()}.</p>
+          </div>,
+          { duration: 8000 }
+        )
+      }
+    } catch (error) {
+      console.error('Error sending confirmation email:', error)
+      toast.error('Booking confirmed, but failed to send confirmation email. Please check your email settings.')
+
+      // Still show success for the booking itself
+      if (bookingDetails.meetingType === 'video') {
+        const roomCode = generateRoomCode()
+        const roomUrl = `/interview-room/${roomCode}?type=mentor&mentor=${encodeURIComponent(selectedMentor.name)}&duration=${bookingDetails.duration}&role=participant`
+
+        toast.success(
+          <div>
+            <p>Booking confirmed with {selectedMentor.name}!</p>
+            <button
+              onClick={() => navigate(roomUrl)}
+              className="mt-2 btn-primary btn-sm"
+            >
+              Join Video Call
+            </button>
+          </div>,
+          { duration: 8000 }
+        )
+      }
     }
 
     setShowBookingModal(false)
