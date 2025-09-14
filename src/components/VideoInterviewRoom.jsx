@@ -22,17 +22,28 @@ export default function VideoInterviewRoom({
   interviewType = 'mock',
   duration = 60
 }) {
-  const hmsActions = useHMSActions()
-  const isConnected = useHMSStore(selectIsConnectedToRoom)
-  const localPeer = useHMSStore(selectLocalPeer)
-  const remotePeers = useHMSStore(selectRemotePeers)
-  const isLocalAudioEnabled = useHMSStore(selectIsLocalAudioEnabled)
-  const isLocalVideoEnabled = useHMSStore(selectIsLocalVideoEnabled)
-
+  // For demo mode, we'll simulate the HMS state without actual connection
+  const [isConnected, setIsConnected] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(duration * 60)
   const [isRecording, setIsRecording] = useState(false)
   const [showChat, setShowChat] = useState(false)
+  const [isLocalAudioEnabled, setIsLocalAudioEnabled] = useState(true)
+  const [isLocalVideoEnabled, setIsLocalVideoEnabled] = useState(true)
+
+  // Demo mode - simulate HMS hooks
+  const hmsActions = {
+    join: () => Promise.resolve(),
+    leave: () => Promise.resolve(),
+    setLocalAudioEnabled: (enabled) => setIsLocalAudioEnabled(enabled),
+    setLocalVideoEnabled: (enabled) => setIsLocalVideoEnabled(enabled)
+  }
+
+  // Demo peers for display
+  const localPeer = isConnected ? { id: 'local', name: userName } : null
+  const remotePeers = isConnected ? [
+    { id: 'demo-peer-1', name: 'AI Interviewer' }
+  ] : []
 
   useEffect(() => {
     if (isConnected && timeRemaining > 0) {
@@ -53,24 +64,23 @@ export default function VideoInterviewRoom({
   const joinRoom = async () => {
     setIsJoining(true)
     try {
-      // Generate real 100ms auth token
-      console.log('Generating auth token for:', { roomCode, userName, role })
-      const authToken = await generateHMSToken(roomCode, userName, role)
-      console.log('Generated token:', authToken)
+      // For demo purposes, show video call interface without actual connection
+      console.log('Demo mode: Simulating video call for:', { roomCode, userName, role })
 
-      await hmsActions.join({
-        authToken,
-        userName,
-        settings: {
-          isAudioMuted: false,
-          isVideoMuted: false
-        }
-      })
+      // Simulate connection delay
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
-      toast.success('Joined interview room successfully!')
+      // "Connect" to demo room
+      setIsConnected(true)
+
+      toast.success('Demo: Video call interface loaded! (Connect backend for real calls)')
+
+      // Show demo message
+      toast.info('This is demo mode. Implement backend token generation for live video calls.', { duration: 5000 })
+
     } catch (error) {
-      console.error('Failed to join room:', error)
-      toast.error(`Failed to join room: ${error.message}`)
+      console.error('Demo mode error:', error)
+      toast.error('Demo mode active. Backend integration needed for live video calls.')
     } finally {
       setIsJoining(false)
     }
@@ -79,6 +89,7 @@ export default function VideoInterviewRoom({
   const handleLeaveRoom = async () => {
     try {
       await hmsActions.leave()
+      setIsConnected(false)
       onLeave?.()
       toast.success('Left interview room')
     } catch (error) {
@@ -88,10 +99,12 @@ export default function VideoInterviewRoom({
 
   const toggleAudio = () => {
     hmsActions.setLocalAudioEnabled(!isLocalAudioEnabled)
+    toast.success(isLocalAudioEnabled ? 'Audio muted' : 'Audio unmuted')
   }
 
   const toggleVideo = () => {
     hmsActions.setLocalVideoEnabled(!isLocalVideoEnabled)
+    toast.success(isLocalVideoEnabled ? 'Video disabled' : 'Video enabled')
   }
 
   const formatTime = (seconds) => {
@@ -190,6 +203,8 @@ export default function VideoInterviewRoom({
               key={peer.id}
               peer={peer}
               isLocal={false}
+              isAudioEnabled={true}
+              isVideoEnabled={true}
             />
           ))}
         </div>
@@ -251,18 +266,36 @@ export default function VideoInterviewRoom({
   )
 }
 
-function VideoTile({ peer, isLocal, isAudioEnabled, isVideoEnabled }) {
-  const videoRef = useHMSStore(selectCameraStreamByPeerID(peer.id))
-
+function VideoTile({ peer, isLocal, isAudioEnabled = true, isVideoEnabled = true }) {
   return (
     <div className="relative bg-slate-800 rounded-lg overflow-hidden">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted={isLocal}
-        playsInline
-        className="w-full h-full object-cover"
-      />
+      {/* Demo video placeholder */}
+      <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
+        {isVideoEnabled ? (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-slate-600 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div className="text-slate-300 text-sm">
+              {isLocal ? 'Your Camera' : `${peer.name}'s Camera`}
+            </div>
+            <div className="text-xs text-slate-400 mt-1">
+              Demo Mode
+            </div>
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-slate-600 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6" />
+              </svg>
+            </div>
+            <div className="text-slate-400 text-sm">Camera Off</div>
+          </div>
+        )}
+      </div>
 
       <div className="absolute bottom-4 left-4 bg-black/50 rounded-lg px-3 py-1">
         <span className="text-white text-sm font-medium">

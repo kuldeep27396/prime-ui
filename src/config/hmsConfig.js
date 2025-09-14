@@ -1,5 +1,6 @@
-import jwt from 'jsonwebtoken'
-import { v4 as uuidv4 } from 'uuid'
+// JWT and UUID imports - using dynamic imports for browser compatibility
+// import jwt from 'jsonwebtoken' // Not available in browser
+// import { v4 as uuidv4 } from 'uuid'
 
 // 100ms Configuration - LIVE CREDENTIALS
 export const HMS_CONFIG = {
@@ -41,40 +42,33 @@ export const createRoomUrl = (roomCode, role = 'participant') => {
   return `${window.location.origin}/interview-room/${roomCode}?role=${role}`
 }
 
-// Generate 100ms auth token
-// SECURITY NOTE: This should be done on your backend in production!
+// Generate simple UUID for browser compatibility
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
+
+// Generate mock auth token for demo purposes
+// IMPORTANT: In production, this MUST be generated on your backend!
 export const generateHMSToken = async (roomCode, userName, role = 'guest') => {
   try {
-    const now = Math.floor(Date.now() / 1000)
+    console.log('Generating demo token for:', { roomCode, userName, role })
 
-    const payload = {
-      access_key: HMS_CONFIG.accessKey,
-      room_id: HMS_CONFIG.roomId,
-      user_id: `${userName}_${uuidv4().substring(0, 8)}`,
-      role: role,
-      type: 'app',
-      version: 2,
-      iat: now,
-      exp: now + 24 * 3600, // 24 hours
-      jti: uuidv4(),
+    // For demo purposes, return a mock token
+    // In production, you need to call your backend API that will use the 100ms Management API
+    const mockToken = `demo_token_${generateUUID()}`
 
-      // Optional: Add more user metadata
-      metadata: {
-        name: userName,
-        room_code: roomCode
-      }
-    }
+    console.log('Generated demo token (replace with backend call):', mockToken)
 
-    console.log('Generating token with payload:', payload)
+    // This is a placeholder - you'll need to implement proper backend token generation
+    throw new Error('Demo mode: Please implement backend token generation for production use')
 
-    const token = jwt.sign(payload, HMS_CONFIG.appSecret, {
-      algorithm: 'HS256'
-    })
-
-    return token
   } catch (error) {
-    console.error('Error generating HMS token:', error)
-    throw new Error('Failed to generate authentication token')
+    console.error('Token generation error:', error.message)
+    throw new Error('This is demo mode. For production, implement backend token generation using 100ms Management API')
   }
 }
 
