@@ -315,15 +315,15 @@ export default function SchedulePage() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="container-responsive py-6 sm:py-8">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">Find Your Perfect Mentor</h1>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+            <h1 className="heading-lg-responsive text-slate-900 mb-3 sm:mb-4">Find Your Perfect Mentor</h1>
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mobile-padding">
               Book personalized mock interviews with experienced professionals from top tech companies.
               Get expert guidance and insider insights to ace your next interview.
             </p>
@@ -331,7 +331,7 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container-responsive py-4 sm:py-6 lg:py-8">
         {/* User Data Notification */}
         {!isSignedIn && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -363,7 +363,7 @@ export default function SchedulePage() {
             </div>
 
             {showUserData && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-4">
                 <div className="text-center p-3 bg-white rounded-lg">
                   <div className="text-2xl font-bold text-emerald-600">{userData.progress.completedSessions}</div>
                   <div className="text-sm text-slate-600">Sessions Completed</div>
@@ -741,7 +741,7 @@ export default function SchedulePage() {
               </div>
             )}
 
-            <div className="grid lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {filteredMentors.map((mentor) => {
                 const isFavorite = isSignedIn && userData?.favorites.includes(mentor.id)
                 const hasSessionHistory = isSignedIn && userData?.sessionHistory.some(s => s.mentorId === mentor.id)
@@ -1084,12 +1084,12 @@ export default function SchedulePage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Session Duration
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {[30, 60, 90].map((duration) => (
                       <button
                         key={duration}
                         onClick={() => setBookingDetails({...bookingDetails, duration})}
-                        className={`p-3 text-center border rounded-lg transition-all ${
+                        className={`p-2 sm:p-3 text-center border rounded-lg transition-all text-sm sm:text-base ${
                           bookingDetails.duration === duration
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                             : 'border-slate-200 hover:border-slate-300 text-slate-700'
@@ -1107,10 +1107,10 @@ export default function SchedulePage() {
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Meeting Type
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                     <button
                       onClick={() => setBookingDetails({...bookingDetails, meetingType: 'video'})}
-                      className={`p-3 text-center border rounded-lg transition-all ${
+                      className={`p-2 sm:p-3 text-center border rounded-lg transition-all text-sm sm:text-base ${
                         bookingDetails.meetingType === 'video'
                           ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                           : 'border-slate-200 hover:border-slate-300 text-slate-700'
