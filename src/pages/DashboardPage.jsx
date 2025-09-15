@@ -23,24 +23,28 @@ export default function DashboardPage() {
   // Load dashboard data from API
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!user?.id) return;
-
       setApiLoading(true);
       try {
-        // Try to create/update user first
-        await api.createUser({
-          userId: user.id,
-          email: user.emailAddresses[0]?.emailAddress || '',
-          firstName: user.firstName || '',
-          lastName: user.lastName || '',
-          role: 'candidate'
-        }).catch(() => {
-          // User might already exist, that's okay
-        });
+        if (user?.id && api.isAuthenticated) {
+          // Try to create/update user first for authenticated users
+          await api.createUser({
+            userId: user.id,
+            email: user.emailAddresses[0]?.emailAddress || '',
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            role: 'candidate'
+          }).catch(() => {
+            // User might already exist, that's okay
+          });
 
-        // Load dashboard data
-        const dashboardData = await api.getDashboardData(user.id);
-        setApiData(dashboardData);
+          // Load dashboard data for authenticated users
+          const dashboardData = await api.getDashboardData(user.id);
+          setApiData(dashboardData);
+        } else {
+          // Load mock data for guest users
+          const dashboardData = await api.getDashboardData('guest-user');
+          setApiData(dashboardData);
+        }
       } catch (error) {
         console.warn('Dashboard API data not available:', error.message);
         // Fall back to mock data - don't show error to user
@@ -145,6 +149,35 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="container-responsive py-4 sm:py-6 lg:py-8">
+        {/* Guest Mode Banner */}
+        {api.isGuestMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg mb-6 shadow-lg"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-sm">👋</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Welcome to Prime Interviews!</h3>
+                  <p className="text-blue-100 text-sm">You're in demo mode. Sign in to save your progress and access personalized features.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Link to="/sign-in" className="btn bg-white text-blue-600 hover:bg-blue-50 text-sm px-4 py-2">
+                  Sign In
+                </Link>
+                <Link to="/sign-up" className="btn bg-blue-700 text-white hover:bg-blue-800 text-sm px-4 py-2">
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -154,21 +187,21 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               {user?.imageUrl && (
-                <img 
-                  src={user.imageUrl} 
+                <img
+                  src={user.imageUrl}
                   alt={user.firstName}
                   className="w-16 h-16 rounded-full border-4 border-white shadow-lg"
                 />
               )}
               <div>
                 <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                  Welcome back, {user?.firstName || 'there'}! 👋
+                  Welcome{api.isGuestMode ? '' : ' back'}, {user?.firstName || (api.isGuestMode ? 'Demo User' : 'there')}! 👋
                 </h1>
                 <p className="text-slate-600 flex items-center">
                   <span className="badge bg-blue-100 text-blue-800 border-blue-200 mr-3">
-                    {userData.profile.role}
+                    {api.isGuestMode ? 'Guest' : userData.profile.role}
                   </span>
-                  {userData.profile.experience} • {user?.primaryEmailAddress?.emailAddress}
+                  {api.isGuestMode ? 'Demo Mode' : userData.profile.experience} • {user?.primaryEmailAddress?.emailAddress || (api.isGuestMode ? 'demo@example.com' : '')}
                 </p>
               </div>
             </div>

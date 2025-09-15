@@ -4,6 +4,7 @@
  * Integrates with the tested backend endpoints
  */
 import { useAuth } from '@clerk/clerk-react';
+import { mockDataService } from './mockDataService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -268,44 +269,132 @@ export const apiService = new APIService();
 
 // Hook for using API service with Clerk authentication
 export const useAPIService = () => {
-  const { getToken } = useAuth();
+  const { getToken, isSignedIn } = useAuth();
+
+  // Function to safely get authentication token
+  const safeGetToken = async () => {
+    if (!isSignedIn) return null;
+    try {
+      return await getToken();
+    } catch (error) {
+      console.warn('Failed to get auth token, falling back to guest mode:', error);
+      return null;
+    }
+  };
+
+  // Create service methods that fall back to mock data for guest users
+  const createServiceMethod = (realMethod, mockMethod) => {
+    return async (...args) => {
+      if (!isSignedIn) {
+        console.log('Guest mode: using mock data');
+        return mockMethod(...args);
+      }
+
+      try {
+        const token = await safeGetToken();
+        if (!token) {
+          console.log('No auth token available, using mock data');
+          return mockMethod(...args);
+        }
+        return realMethod(...args, () => Promise.resolve(token));
+      } catch (error) {
+        console.warn('API call failed, falling back to mock data:', error);
+        return mockMethod(...args);
+      }
+    };
+  };
 
   return {
-    // Health endpoints
+    // Health endpoints (always use real API for these)
     getHealth: () => apiService.getHealth(),
     getRoot: () => apiService.getRoot(),
 
     // Email
-    sendEmail: (emailData) => apiService.sendEmail(emailData),
+    sendEmail: createServiceMethod(
+      (emailData, getToken) => apiService.sendEmail(emailData),
+      (emailData) => mockDataService.sendEmail(emailData)
+    ),
 
     // Users
-    createUser: (userData) => apiService.createUser(userData, getToken),
-    getUser: (userId) => apiService.getUser(userId, getToken),
-    getUserAnalytics: (userId) => apiService.getUserAnalytics(userId, getToken),
+    createUser: createServiceMethod(
+      (userData, getToken) => apiService.createUser(userData, getToken),
+      (userData) => mockDataService.createUser(userData)
+    ),
+    getUser: createServiceMethod(
+      (userId, getToken) => apiService.getUser(userId, getToken),
+      (userId) => mockDataService.getUser(userId)
+    ),
+    getUserAnalytics: createServiceMethod(
+      (userId, getToken) => apiService.getUserAnalytics(userId, getToken),
+      (userId) => mockDataService.getUserAnalytics(userId)
+    ),
 
     // Mentors
-    getMentors: (params) => apiService.getMentors(params, getToken),
-    getMentor: (mentorId) => apiService.getMentor(mentorId, getToken),
-    searchMentors: (searchParams) => apiService.searchMentors(searchParams, getToken),
-    findMentors: (filters) => apiService.findMentors(filters, getToken),
+    getMentors: createServiceMethod(
+      (params, getToken) => apiService.getMentors(params, getToken),
+      (params) => mockDataService.getMentors(params)
+    ),
+    getMentor: createServiceMethod(
+      (mentorId, getToken) => apiService.getMentor(mentorId, getToken),
+      (mentorId) => mockDataService.getMentor(mentorId)
+    ),
+    searchMentors: createServiceMethod(
+      (searchParams, getToken) => apiService.searchMentors(searchParams, getToken),
+      (searchParams) => mockDataService.searchMentors(searchParams)
+    ),
+    findMentors: createServiceMethod(
+      (filters, getToken) => apiService.findMentors(filters, getToken),
+      (filters) => mockDataService.findMentors(filters)
+    ),
 
     // Sessions
-    createSession: (sessionData) => apiService.createSession(sessionData, getToken),
-    getSessions: (params) => apiService.getSessions(params, getToken),
-    updateSession: (sessionId, updateData) => apiService.updateSession(sessionId, updateData, getToken),
-    cancelSession: (sessionId, reason) => apiService.cancelSession(sessionId, reason, getToken),
-    completeSession: (sessionId, rating, feedback) => apiService.completeSession(sessionId, rating, feedback, getToken),
+    createSession: createServiceMethod(
+      (sessionData, getToken) => apiService.createSession(sessionData, getToken),
+      (sessionData) => mockDataService.createSession(sessionData)
+    ),
+    getSessions: createServiceMethod(
+      (params, getToken) => apiService.getSessions(params, getToken),
+      (params) => mockDataService.getSessions(params)
+    ),
+    updateSession: createServiceMethod(
+      (sessionId, updateData, getToken) => apiService.updateSession(sessionId, updateData, getToken),
+      (sessionId, updateData) => mockDataService.updateSession(sessionId, updateData)
+    ),
+    cancelSession: createServiceMethod(
+      (sessionId, reason, getToken) => apiService.cancelSession(sessionId, reason, getToken),
+      (sessionId, reason) => mockDataService.cancelSession(sessionId, reason)
+    ),
+    completeSession: createServiceMethod(
+      (sessionId, rating, feedback, getToken) => apiService.completeSession(sessionId, rating, feedback, getToken),
+      (sessionId, rating, feedback) => mockDataService.completeSession(sessionId, rating, feedback)
+    ),
 
     // Video Rooms
-    createVideoRoom: (roomData) => apiService.createVideoRoom(roomData, getToken),
-    getRoomStatus: (roomId) => apiService.getRoomStatus(roomId, getToken),
+    createVideoRoom: createServiceMethod(
+      (roomData, getToken) => apiService.createVideoRoom(roomData, getToken),
+      (roomData) => mockDataService.createVideoRoom(roomData)
+    ),
+    getRoomStatus: createServiceMethod(
+      (roomId, getToken) => apiService.getRoomStatus(roomId, getToken),
+      (roomId) => mockDataService.getRoomStatus(roomId)
+    ),
 
     // Convenience methods
-    bookInterview: (interviewData) => apiService.bookInterview(interviewData, getToken),
-    getDashboardData: (userId) => apiService.getDashboardData(userId, getToken),
+    bookInterview: createServiceMethod(
+      (interviewData, getToken) => apiService.bookInterview(interviewData, getToken),
+      (interviewData) => mockDataService.bookInterview(interviewData)
+    ),
+    getDashboardData: createServiceMethod(
+      (userId, getToken) => apiService.getDashboardData(userId, getToken),
+      (userId) => mockDataService.getDashboardData(userId)
+    ),
+
+    // Meta information
+    isGuestMode: !isSignedIn,
+    isAuthenticated: isSignedIn,
 
     // Direct API service access for custom calls
-    apiService
+    apiService: isSignedIn ? apiService : mockDataService
   };
 };
 

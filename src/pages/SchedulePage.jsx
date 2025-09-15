@@ -18,7 +18,7 @@ export default function SchedulePage() {
   const [mentorsLoading, setMentorsLoading] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
 
-  // Load mentors from API
+  // Load mentors from API (works for both authenticated and guest users)
   useEffect(() => {
     const loadMentors = async () => {
       setMentorsLoading(true);
@@ -35,10 +35,8 @@ export default function SchedulePage() {
       }
     };
 
-    if (isSignedIn) {
-      loadMentors();
-    }
-  }, [isSignedIn, api]);
+    loadMentors();
+  }, [api]);
   const [showFilters, setShowFilters] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
@@ -332,18 +330,36 @@ export default function SchedulePage() {
       </div>
 
       <div className="container-responsive py-4 sm:py-6 lg:py-8">
-        {/* User Data Notification */}
-        {!isSignedIn && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <h3 className="text-sm font-medium text-blue-800 mb-1">Browsing as Guest</h3>
-                <p className="text-sm text-blue-700">
-                  You're viewing demo data. Sign in to see your personalized mentors, booking history, and save preferences.
-                </p>
+        {/* Guest Mode Notification */}
+        {api.isGuestMode && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-blue-800 mb-1">Demo Mode Active</h3>
+                  <p className="text-sm text-blue-700">
+                    You're viewing sample mentors and can test bookings. Sign in to access real mentors and save your sessions.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 ml-9 sm:ml-0">
+                <button
+                  onClick={() => navigate('/sign-in')}
+                  className="btn bg-blue-600 text-white hover:bg-blue-700 text-xs px-3 py-1.5"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate('/sign-up')}
+                  className="btn bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 text-xs px-3 py-1.5"
+                >
+                  Sign Up
+                </button>
               </div>
             </div>
           </div>

@@ -38,19 +38,15 @@ function App() {
             <Routes>
               <Route path="/sign-in" element={<SignInPage />} />
               <Route path="/sign-up" element={<SignUpPage />} />
-              {isSignedIn ? (
-                <>
-                  <Route path="/" element={<><Navbar /><HomePage /></>} />
-                  <Route path="/dashboard" element={<><Navbar /><DashboardPage /></>} />
-                  <Route path="/interviews" element={<><Navbar /><InterviewPage /></>} />
-                  <Route path="/schedule" element={<><Navbar /><SchedulePage /></>} />
-                  <Route path="/screening" element={<><Navbar /><CompanyScreeningPage /></>} />
-                  <Route path="/skills" element={<><Navbar /><DashboardPage /></>} />
-                  <Route path="/interview-room/:roomCode" element={<><Navbar /><InterviewRoomPage /></>} />
-                </>
-              ) : (
-                <Route path="*" element={<SignInPage />} />
-              )}
+              <>
+                <Route path="/" element={<><Navbar /><HomePage /></>} />
+                <Route path="/dashboard" element={<><Navbar /><DashboardPage /></>} />
+                <Route path="/interviews" element={<><Navbar /><InterviewPage /></>} />
+                <Route path="/schedule" element={<><Navbar /><SchedulePage /></>} />
+                <Route path="/screening" element={<><Navbar /><CompanyScreeningPage /></>} />
+                <Route path="/skills" element={<><Navbar /><DashboardPage /></>} />
+                <Route path="/interview-room/:roomCode" element={<><Navbar /><InterviewRoomPage /></>} />
+              </>
               <Route path="*" element={
                 <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
                   <div className="bg-white rounded-lg p-8 max-w-md text-center">
