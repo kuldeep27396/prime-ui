@@ -26,15 +26,15 @@ export const emailService = {
             }));
 
             // Call backend API for SMTP email sending
-            // NOTE: For testing with Resend free tier, we're using the verified owner email
-            // In production, you would use the actual recipient email after domain verification
-            const response = await fetch('/api/send-email', {
+            // Use the backend URL from environment or default to localhost:8000
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+            const response = await fetch(`${API_BASE_URL}/api/send-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    to: 'kuldeep.pal.eng@gmail.com', // Using verified email for Resend free tier
+                    to: to_email, // Use actual recipient email
                     toName: to_name,
                     subject: `Interview Invitation: ${meeting_title}`,
                     html: emailHtml

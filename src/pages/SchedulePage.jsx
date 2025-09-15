@@ -7,12 +7,38 @@ import { mentors, companyLogos, skillCategories, companies } from '../data/mento
 import { getUserData } from '../data/userSessions'
 import { generateRoomCode, createRoomUrl } from '../config/hmsConfig'
 import { emailService } from '../services/emailService'
+import { useAPIService } from '../services/apiService'
 
 export default function SchedulePage() {
   const { isSignedIn, user } = useUser()
+  const api = useAPIService()
   const navigate = useNavigate()
   const [selectedMentor, setSelectedMentor] = useState(null)
+  const [apiMentors, setApiMentors] = useState([])
+  const [mentorsLoading, setMentorsLoading] = useState(false)
   const [showBookingModal, setShowBookingModal] = useState(false)
+
+  // Load mentors from API
+  useEffect(() => {
+    const loadMentors = async () => {
+      setMentorsLoading(true);
+      try {
+        const response = await api.getMentors({ page: 1, limit: 50 });
+        if (response.mentors) {
+          setApiMentors(response.mentors);
+        }
+      } catch (error) {
+        console.warn('Failed to load mentors from API:', error.message);
+        // Fall back to mock data
+      } finally {
+        setMentorsLoading(false);
+      }
+    };
+
+    if (isSignedIn) {
+      loadMentors();
+    }
+  }, [isSignedIn, api]);
   const [showFilters, setShowFilters] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
@@ -46,22 +72,25 @@ export default function SchedulePage() {
     // User can manually apply filters if they want
   }, [isSignedIn, user?.id])
 
+  // Use API mentors if available, otherwise fall back to mock data
+  const activeMentors = apiMentors.length > 0 ? apiMentors : mentors;
+
   // Extract unique values for multi-select filters
-  const availableSkills = [...new Set(mentors.flatMap(m => m.skills))]
-  const availableCompanies = [...new Set(mentors.flatMap(m => [m.currentCompany, ...m.previousCompanies]))]
-  const availableLanguages = [...new Set(mentors.flatMap(m => m.languages))]
+  const availableSkills = [...new Set(activeMentors.flatMap(m => m.skills || []))]
+  const availableCompanies = [...new Set(activeMentors.flatMap(m => [m.currentCompany, ...(m.previousCompanies || [])]))]
+  const availableLanguages = [...new Set(activeMentors.flatMap(m => m.languages || []))]
 
   // Filter and sort mentors
   const filteredMentors = useMemo(() => {
-    let filtered = mentors.filter(mentor => {
+    let filtered = activeMentors.filter(mentor => {
       // Search query filter
       const searchMatch = !searchQuery ||
         mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mentor.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mentor.specialties.some(spec => spec.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        mentor.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        mentor.currentCompany.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        mentor.previousCompanies.some(company => company.toLowerCase().includes(searchQuery.toLowerCase()))
+        (mentor.title && mentor.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (mentor.specialties && mentor.specialties.some(spec => spec.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+        (mentor.skills && mentor.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+        (mentor.currentCompany && mentor.currentCompany.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (mentor.previousCompanies && mentor.previousCompanies.some(company => company.toLowerCase().includes(searchQuery.toLowerCase())))
 
       // Skills filter (multi-select)
       const skillMatch = filters.skills.length === 0 ||
@@ -131,6 +160,25 @@ export default function SchedulePage() {
     }
 
     try {
+      // First, try to book via API
+      try {
+        await api.bookInterview({
+          mentorId: selectedMentor.id,
+          sessionType: bookingDetails.sessionType,
+          scheduledAt: new Date(selectedTimeSlot).toISOString(),
+          duration: bookingDetails.duration,
+          meetingType: bookingDetails.meetingType,
+          recordSession: bookingDetails.recordSession,
+          specialRequests: bookingDetails.specialRequests,
+          participantEmail: user.primaryEmailAddress.emailAddress,
+          participantName: user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Candidate'
+        });
+
+        toast.success(`✅ Session booked successfully with ${selectedMentor.name}!`);
+      } catch (apiError) {
+        console.warn('API booking failed, using fallback method:', apiError.message);
+      }
+
       // Generate room link for video calls
       let roomUrl = ''
       if (bookingDetails.meetingType === 'video') {

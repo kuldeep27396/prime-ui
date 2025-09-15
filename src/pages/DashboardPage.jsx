@@ -6,15 +6,52 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useUser } from '@clerk/clerk-react'
 import { useUserData } from '../hooks/useUserData'
+import { useAPIService } from '../services/apiService'
 import { learningResources } from '../data/mockData'
 import { generateRoomCode } from '../config/hmsConfig'
 import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react'
 
 export default function DashboardPage() {
   const { user } = useUser()
   const { userData, loading, getUserStats } = useUserData()
+  const api = useAPIService()
   const navigate = useNavigate()
-  
+  const [apiData, setApiData] = useState(null)
+  const [apiLoading, setApiLoading] = useState(false)
+
+  // Load dashboard data from API
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (!user?.id) return;
+
+      setApiLoading(true);
+      try {
+        // Try to create/update user first
+        await api.createUser({
+          userId: user.id,
+          email: user.emailAddresses[0]?.emailAddress || '',
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          role: 'candidate'
+        }).catch(() => {
+          // User might already exist, that's okay
+        });
+
+        // Load dashboard data
+        const dashboardData = await api.getDashboardData(user.id);
+        setApiData(dashboardData);
+      } catch (error) {
+        console.warn('Dashboard API data not available:', error.message);
+        // Fall back to mock data - don't show error to user
+      } finally {
+        setApiLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [user?.id, api]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

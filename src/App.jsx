@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { Suspense } from 'react'
 import { useUser, useClerk } from '@clerk/clerk-react'
+import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
@@ -32,6 +33,7 @@ function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-slate-50">
+          <Toaster position="top-right" />
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/sign-in" element={<SignInPage />} />
