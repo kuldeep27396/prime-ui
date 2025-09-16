@@ -1,7 +1,7 @@
 export const mentors = [
   {
     id: 1,
-    name: "Sarah Chen",
+    name: "Diana Prince",
     title: "Senior Software Engineer",
     currentCompany: "Google",
     previousCompanies: ["Meta", "Uber"],
@@ -20,7 +20,7 @@ export const mentors = [
   },
   {
     id: 2,
-    name: "Marcus Rodriguez",
+    name: "Steve Rogers",
     title: "Principal Engineer",
     currentCompany: "Netflix",
     previousCompanies: ["Amazon", "Microsoft"],
@@ -39,7 +39,7 @@ export const mentors = [
   },
   {
     id: 3,
-    name: "Priya Patel",
+    name: "Wanda Maximoff",
     title: "Staff Frontend Engineer",
     currentCompany: "Stripe",
     previousCompanies: ["Airbnb", "Shopify"],
@@ -58,7 +58,7 @@ export const mentors = [
   },
   {
     id: 4,
-    name: "David Kim",
+    name: "Tony Stark",
     title: "Senior Data Scientist",
     currentCompany: "OpenAI",
     previousCompanies: ["Tesla", "Nvidia"],
@@ -77,7 +77,7 @@ export const mentors = [
   },
   {
     id: 5,
-    name: "Emily Johnson",
+    name: "Natasha Romanoff",
     title: "Engineering Manager",
     currentCompany: "Apple",
     previousCompanies: ["Slack", "GitHub"],
@@ -96,7 +96,7 @@ export const mentors = [
   },
   {
     id: 6,
-    name: "Raj Kumar",
+    name: "Peter Parker",
     title: "Backend Engineer",
     currentCompany: "Meta",
     previousCompanies: ["LinkedIn", "Twitter"],
@@ -115,7 +115,7 @@ export const mentors = [
   },
   {
     id: 7,
-    name: "Lisa Zhang",
+    name: "Carol Danvers",
     title: "DevOps Engineer",
     currentCompany: "Amazon",
     previousCompanies: ["Dropbox", "DigitalOcean"],
@@ -134,7 +134,7 @@ export const mentors = [
   },
   {
     id: 8,
-    name: "Michael Brown",
+    name: "Bruce Wayne",
     title: "Security Engineer",
     currentCompany: "Microsoft",
     previousCompanies: ["Cloudflare", "CrowdStrike"],

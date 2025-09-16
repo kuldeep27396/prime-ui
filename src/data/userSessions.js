@@ -5,7 +5,7 @@ export const userBookings = [
   {
     id: 1,
     mentorId: 1,
-    mentorName: "Sarah Chen",
+    mentorName: "Diana Prince",
     sessionType: "Mock Technical Interview",
     scheduledTime: "Dec 20, 2024 7:00 PM PST",
     duration: 60,
@@ -17,13 +17,13 @@ export const userBookings = [
   {
     id: 2,
     mentorId: 3,
-    mentorName: "Priya Patel",
+    mentorName: "Wanda Maximoff",
     sessionType: "Frontend System Design",
     scheduledTime: "Dec 18, 2024 8:00 PM EST",
     duration: 90,
     status: "completed",
     cost: 210,
-    feedback: "Great session! Priya provided excellent insights on React architecture patterns.",
+    feedback: "Great session! Wanda provided excellent insights on React architecture patterns.",
     rating: 5
   }
 ];
@@ -47,7 +47,7 @@ export const userSessionHistory = [
   {
     id: 1,
     mentorId: 2,
-    mentorName: "Marcus Rodriguez",
+    mentorName: "Steve Rogers",
     sessionType: "System Architecture Review",
     completedDate: "Dec 10, 2024",
     duration: 60,
@@ -58,7 +58,7 @@ export const userSessionHistory = [
   {
     id: 2,
     mentorId: 4,
-    mentorName: "David Kim",
+    mentorName: "Tony Stark",
     sessionType: "ML Engineering Interview",
     completedDate: "Nov 28, 2024",
     duration: 90,

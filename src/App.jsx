@@ -11,6 +11,14 @@ import CompanyScreeningPage from './pages/CompanyScreeningPage'
 import InterviewRoomPage from './pages/InterviewRoomPage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
+import DocumentationPage from './pages/DocumentationPage'
+import APIAccessPage from './pages/APIAccessPage'
+import MobileAppPage from './pages/MobileAppPage'
+import HelpCenterPage from './pages/HelpCenterPage'
+import BlogPage from './pages/BlogPage'
+import AboutUsPage from './pages/AboutUsPage'
+import CareersPage from './pages/CareersPage'
+import ContactPage from './pages/ContactPage'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function LoadingSpinner() {
@@ -46,6 +54,14 @@ function App() {
                 <Route path="/screening" element={<><Navbar /><CompanyScreeningPage /></>} />
                 <Route path="/skills" element={<><Navbar /><DashboardPage /></>} />
                 <Route path="/interview-room/:roomCode" element={<><Navbar /><InterviewRoomPage /></>} />
+                <Route path="/documentation" element={<><Navbar /><DocumentationPage /></>} />
+                <Route path="/api-access" element={<><Navbar /><APIAccessPage /></>} />
+                <Route path="/mobile-app" element={<><Navbar /><MobileAppPage /></>} />
+                <Route path="/help-center" element={<><Navbar /><HelpCenterPage /></>} />
+                <Route path="/blog" element={<><Navbar /><BlogPage /></>} />
+                <Route path="/about" element={<><Navbar /><AboutUsPage /></>} />
+                <Route path="/careers" element={<><Navbar /><CareersPage /></>} />
+                <Route path="/contact" element={<><Navbar /><ContactPage /></>} />
               </>
               <Route path="*" element={
                 <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">

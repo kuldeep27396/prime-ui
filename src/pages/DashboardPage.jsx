@@ -1,9 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
-import ReactMarkdown from 'react-markdown'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useUser } from '@clerk/clerk-react'
 import { useUserData } from '../hooks/useUserData'
 import { useAPIService } from '../services/apiService'
@@ -91,40 +88,6 @@ export default function DashboardPage() {
     { name: 'Coding', value: 10, color: '#EF4444' }
   ]
 
-  const aiTips = `## 🤖 AI-Powered Recommendations for ${user?.firstName || 'You'}
-
-Based on your recent performance, here are personalized tips to improve your interview skills:
-
-### 💡 Focus Areas
-${userData.skillAssessments.map(skill => 
-  `- **${skill.skill}**: Your score is ${skill.score}%. ${skill.score < 70 ? 'Focus on improvement' : skill.score < 85 ? 'Good progress, keep practicing' : 'Excellent! Consider advanced topics'}`
-).join('\n')}
-
-### 📚 Recommended Study Plan
-\`\`\`python
-# Practice this pattern for technical interviews
-def solve_interview_problem(problem):
-    # 1. Clarify requirements
-    requirements = clarify_problem(problem)
-    
-    # 2. Think about edge cases
-    edge_cases = identify_edge_cases(requirements)
-    
-    # 3. Code the solution
-    solution = implement_solution(requirements)
-    
-    # 4. Test with examples
-    test_solution(solution, edge_cases)
-    
-    return solution
-\`\`\`
-
-### 🎯 This Week's Goals
-1. Complete 3 system design practice sessions
-2. Solve 5 LeetCode medium problems
-3. Practice explaining your thought process out loud
-${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming interview${stats.upcomingCount > 1 ? 's' : ''}` : '4. Schedule your next practice interview'}
-`
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -147,31 +110,33 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="container-responsive py-4 sm:py-6 lg:py-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+      <div className="container-responsive py-6 sm:py-8 lg:py-10">
         {/* Guest Mode Banner */}
         {api.isGuestMode && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg mb-6 shadow-lg"
+            className="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 text-white p-6 rounded-2xl mb-8 shadow-xl border border-white/20"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-sm">👋</span>
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Welcome to Prime Interviews!</h3>
-                  <p className="text-blue-100 text-sm">You're in demo mode. Sign in to save your progress and access personalized features.</p>
+                  <h3 className="font-bold text-xl mb-2">🚀 Welcome to Prime Interviews!</h3>
+                  <p className="text-indigo-100 text-base leading-relaxed max-w-2xl">Experience our AI-powered interview platform with realistic demo data. Sign in to unlock personalized features, save your progress, and access premium mentors.</p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Link to="/sign-in" className="btn bg-white text-blue-600 hover:bg-blue-50 text-sm px-4 py-2">
+              <div className="flex gap-3">
+                <Link to="/sign-in" className="btn bg-white/90 backdrop-blur-sm text-indigo-600 hover:bg-white border-0 font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                   Sign In
                 </Link>
-                <Link to="/sign-up" className="btn bg-blue-700 text-white hover:bg-blue-800 text-sm px-4 py-2">
-                  Get Started
+                <Link to="/sign-up" className="btn bg-indigo-700/80 backdrop-blur-sm text-white hover:bg-indigo-800 border border-white/20 font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
+                  Get Started Free
                 </Link>
               </div>
             </div>
@@ -179,129 +144,136 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
         )}
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mobile-margin"
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              {user?.imageUrl && (
-                <img
-                  src={user.imageUrl}
-                  alt={user.firstName}
-                  className="w-16 h-16 rounded-full border-4 border-white shadow-lg"
-                />
-              )}
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">
-                  Welcome{api.isGuestMode ? '' : ' back'}, {user?.firstName || (api.isGuestMode ? 'Demo User' : 'there')}! 👋
-                </h1>
-                <p className="text-slate-600 flex items-center">
-                  <span className="badge bg-blue-100 text-blue-800 border-blue-200 mr-3">
-                    {api.isGuestMode ? 'Guest' : userData.profile.role}
-                  </span>
-                  {api.isGuestMode ? 'Demo Mode' : userData.profile.experience} • {user?.primaryEmailAddress?.emailAddress || (api.isGuestMode ? 'demo@example.com' : '')}
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-3">
-              <button
-                onClick={handleStartVideoInterview}
-                className="btn-primary bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 w-full sm:w-auto text-sm sm:text-base"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-                <span className="hidden sm:inline">Start Video Interview</span>
-                <span className="sm:hidden">Start Interview</span>
-              </button>
-              <Link to="/schedule" className="btn-outline w-full sm:w-auto text-sm sm:text-base">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h4a2 2 0 012 2v0" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8l-2 9H10l-2-9z" />
-                </svg>
-                <span className="hidden sm:inline">Schedule with Mentor</span>
-                <span className="sm:hidden">Book Mentor</span>
-              </Link>
-            </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-4">
+            Welcome{api.isGuestMode ? '' : ' back'}, {user?.firstName || (api.isGuestMode ? 'Demo User' : 'there')}! 👋
+          </h1>
+          <div className="flex gap-4">
+            <button
+              onClick={handleStartVideoInterview}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg"
+            >
+              Start Interview
+            </button>
+            <Link
+              to="/schedule"
+              className="bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-lg"
+            >
+              Book Mentor
+            </Link>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mobile-margin">
-          <motion.div 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200"
+            className="group relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-600 mb-1">Total Interviews</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{stats.totalInterviews}</p>
+                </div>
               </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-blue-700">Total Interviews</p>
-                <p className="text-lg sm:text-2xl font-bold text-blue-900">{stats.totalInterviews}</p>
+              <div className="flex items-center text-sm text-slate-500">
+                <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <span>+12% from last month</span>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200"
+            className="group relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-600 mb-1">Completed</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{stats.completedCount}</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-green-700">Completed</p>
-                <p className="text-2xl font-bold text-green-900">{stats.completedCount}</p>
+              <div className="flex items-center text-sm text-slate-500">
+                <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <span>Great progress!</span>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="card bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200"
+            className="group relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-600 mb-1">Average Score</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{stats.averageScore}%</p>
+                </div>
+              </div>
+              <div className="flex items-center text-sm text-slate-500">
+                <svg className="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-purple-700">Average Score</p>
-                <p className="text-2xl font-bold text-purple-900">{stats.averageScore}%</p>
+                <span>Above average</span>
               </div>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="card bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200"
+            className="group relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
           >
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-slate-600 mb-1">Upcoming</p>
+                  <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{stats.upcomingCount}</p>
+                </div>
+              </div>
+              <div className="flex items-center text-sm text-slate-500">
+                <svg className="w-4 h-4 mr-1 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-orange-700">Upcoming</p>
-                <p className="text-2xl font-bold text-orange-900">{stats.upcomingCount}</p>
+                <span>Next: Tomorrow</span>
               </div>
             </div>
           </motion.div>
@@ -334,61 +306,121 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Progress Chart */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="card"
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50"
             >
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">Performance Trends</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={progressData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="score" stroke="#3B82F6" fill="#93C5FD" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">Performance Trends</h2>
+                  <p className="text-slate-600">Track your interview scores over time</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-slate-600">Score Progression</span>
+                </div>
+              </div>
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={320}>
+                  <AreaChart data={progressData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#3B82F6"
+                      strokeWidth={3}
+                      fill="url(#colorScore)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </motion.div>
 
             {/* Interview Types */}
             {stats.totalInterviews > 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="card"
+                className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50"
               >
-                <h2 className="text-xl font-semibold text-slate-900 mb-6">Interview Types Distribution</h2>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <PieChart>
-                      <Pie
-                        data={interviewTypeData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {interviewTypeData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="space-y-3">
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent mb-2">Interview Types</h2>
+                  <p className="text-slate-600">Breakdown of your interview practice sessions</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8 items-center">
+                  <div className="relative">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie
+                          data={interviewTypeData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={120}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {interviewTypeData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            border: 'none',
+                            borderRadius: '12px',
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-4">
                     {interviewTypeData.map((type, index) => (
-                      <div key={index} className="flex items-center">
-                        <div 
-                          className="w-4 h-4 rounded mr-3" 
-                          style={{ backgroundColor: type.color }}
-                        ></div>
-                        <span className="text-sm text-slate-700">{type.name}</span>
-                        <span className="ml-auto text-sm font-medium">{type.value}%</span>
+                      <div key={index} className="group hover:bg-slate-50/80 rounded-xl p-3 transition-all duration-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div
+                              className="w-5 h-5 rounded-full mr-4 shadow-sm"
+                              style={{ backgroundColor: type.color }}
+                            ></div>
+                            <span className="font-medium text-slate-700 group-hover:text-slate-900">{type.name}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-lg font-bold text-slate-800">{type.value}%</span>
+                          </div>
+                        </div>
+                        <div className="ml-9 mt-2">
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div
+                              className="h-2 rounded-full transition-all duration-500"
+                              style={{
+                                backgroundColor: type.color,
+                                width: `${type.value}%`,
+                                opacity: 0.8
+                              }}
+                            ></div>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -425,79 +457,171 @@ ${stats.upcomingCount > 0 ? `4. Prepare for your ${stats.upcomingCount} upcoming
 
           <div className="space-y-8">
             {/* AI Tips */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
-              className="card"
+              className="bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-pink-50/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/50"
             >
-              <div className="prose prose-sm max-w-none">
-                <ReactMarkdown
-                  components={{
-                    code({node, inline, className, children, ...props}) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          style={tomorrow}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        >
-                          {String(children).replace(/\n$/, '')}
-                        </SyntaxHighlighter>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      )
-                    }
-                  }}
-                >
-                  {aiTips}
-                </ReactMarkdown>
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mr-3">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">AI Coach</h2>
+                  <p className="text-slate-600 text-xs">Personalized recommendations</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Focus Areas */}
+                <div className="bg-white/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                    <span className="mr-2">💡</span>
+                    Focus Areas
+                  </h3>
+                  <div className="space-y-2">
+                    {userData.skillAssessments.slice(0, 3).map((skill, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm">
+                        <span className="text-slate-700">{skill.skill}</span>
+                        <span className={`text-xs font-medium ${
+                          skill.score < 70 ? 'text-red-600' :
+                          skill.score < 85 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                          {skill.score}% {skill.score < 70 ? '(improve)' : skill.score < 85 ? '(good)' : '(excellent)'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Tips */}
+                <div className="bg-white/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                    <span className="mr-2">🚀</span>
+                    Quick Tips
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      "Think out loud during coding",
+                      "Ask clarifying questions first",
+                      "Use STAR method for behavioral"
+                    ].map((tip, index) => (
+                      <div key={index} className="flex items-start text-sm">
+                        <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                        <span className="text-slate-600">{tip}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Goals */}
+                <div className="bg-white/50 rounded-xl p-4">
+                  <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center">
+                    <span className="mr-2">🎯</span>
+                    This Week's Goals
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      "Complete 3 practice sessions",
+                      `Review ${userData.skillAssessments[0]?.skill || 'Data Structures'}`,
+                      stats.upcomingCount > 0 ? `Prepare for ${stats.upcomingCount} interview${stats.upcomingCount > 1 ? 's' : ''}` : 'Schedule practice interview'
+                    ].map((goal, index) => (
+                      <div key={index} className="flex items-start text-sm">
+                        <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                        <span className="text-slate-600">{goal}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
 
             {/* Upcoming Interviews */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.9 }}
-              className="card"
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50"
             >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-slate-900">Upcoming Interviews</h2>
-                <Link to="/schedule" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  {stats.upcomingCount > 0 ? 'View all' : 'Schedule'}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h4a2 2 0 012 2v0M8 7h8" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">Upcoming Sessions</h2>
+                    <p className="text-slate-600 text-sm">Your scheduled interviews</p>
+                  </div>
+                </div>
+                <Link
+                  to="/schedule"
+                  className="group bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                >
+                  <span className="group-hover:scale-105 transition-transform duration-200 inline-block">
+                    {stats.upcomingCount > 0 ? 'View All' : 'Schedule New'}
+                  </span>
                 </Link>
               </div>
               <div className="space-y-4">
                 {stats.upcomingCount > 0 ? (
                   stats.upcomingInterviews.slice(0, 3).map((interview) => (
-                    <div key={interview.id} className="flex items-center p-3 bg-slate-50 rounded-lg">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-lg">🏢</span>
+                    <div key={interview.id} className="group bg-gradient-to-r from-slate-50/80 to-slate-100/50 hover:from-emerald-50/80 hover:to-teal-50/50 rounded-2xl p-4 transition-all duration-300 hover:shadow-lg border border-slate-200/50 hover:border-emerald-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-slate-900 truncate group-hover:text-emerald-900 transition-colors duration-200">{interview.company}</p>
+                            <p className="text-sm text-slate-600 group-hover:text-emerald-700 transition-colors duration-200">{interview.title}</p>
+                            <p className="text-xs text-slate-500 mt-1 flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {interview.scheduledAt && formatDate(interview.scheduledAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm transition-all duration-200 ${
+                            interview.difficulty === 'Hard' ? 'bg-red-100 text-red-800 group-hover:bg-red-200' :
+                            interview.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800 group-hover:bg-yellow-200' :
+                            'bg-green-100 text-green-800 group-hover:bg-green-200'
+                          }`}>
+                            <div className={`w-2 h-2 rounded-full mr-1.5 ${
+                              interview.difficulty === 'Hard' ? 'bg-red-500' :
+                              interview.difficulty === 'Medium' ? 'bg-yellow-500' :
+                              'bg-green-500'
+                            }`}></div>
+                            {interview.type}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 truncate">{interview.company}</p>
-                        <p className="text-sm text-slate-500">{interview.title}</p>
-                        <p className="text-xs text-slate-400">
-                          {interview.scheduledAt && formatDate(interview.scheduledAt)}
-                        </p>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        interview.difficulty === 'Hard' ? 'bg-red-100 text-red-700' :
-                        interview.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                        {interview.type}
-                      </span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8">
-                    <p className="text-slate-500 mb-4">No upcoming interviews scheduled</p>
-                    <Link to="/schedule" className="btn-secondary btn-sm">
+                  <div className="text-center py-12 bg-gradient-to-br from-slate-50/80 to-slate-100/50 rounded-2xl border border-slate-200/50">
+                    <div className="w-16 h-16 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    </div>
+                    <p className="text-slate-600 font-medium mb-2">No upcoming interviews</p>
+                    <p className="text-slate-500 text-sm mb-6">Schedule your first session with an expert mentor</p>
+                    <Link
+                      to="/schedule"
+                      className="inline-flex items-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-2xl font-semibold hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
                       Schedule Interview
                     </Link>
                   </div>

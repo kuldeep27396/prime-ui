@@ -404,8 +404,8 @@ export default function HomePage() {
                 <li><Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors">AI Practice</Link></li>
                 <li><Link to="/schedule" className="text-slate-400 hover:text-white transition-colors">Find Mentors</Link></li>
                 <li><Link to="/screening" className="text-slate-400 hover:text-white transition-colors">Company Screening</Link></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Mobile App</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">API Access</a></li>
+                <li><Link to="/mobile-app" className="text-slate-400 hover:text-white transition-colors">Mobile App</Link></li>
+                <li><Link to="/api-access" className="text-slate-400 hover:text-white transition-colors">API Access</Link></li>
               </ul>
             </div>
 
@@ -413,9 +413,9 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold text-white mb-4">Resources</h3>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Blog</a></li>
+                <li><Link to="/documentation" className="text-slate-400 hover:text-white transition-colors">Documentation</Link></li>
+                <li><Link to="/help-center" className="text-slate-400 hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/blog" className="text-slate-400 hover:text-white transition-colors">Blog</Link></li>
                 <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Tutorials</a></li>
                 <li><a href="#" className="text-slate-400 hover:text-white transition-colors">System Status</a></li>
               </ul>
@@ -425,10 +425,10 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold text-white mb-4">Company</h3>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Careers</a></li>
+                <li><Link to="/about" className="text-slate-400 hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="text-slate-400 hover:text-white transition-colors">Careers</Link></li>
                 <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Press</a></li>
-                <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Contact</a></li>
+                <li><Link to="/contact" className="text-slate-400 hover:text-white transition-colors">Contact</Link></li>
                 <li><a href="#" className="text-slate-400 hover:text-white transition-colors">Partnerships</a></li>
               </ul>
             </div>
