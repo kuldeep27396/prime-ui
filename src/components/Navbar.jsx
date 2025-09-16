@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react'
+import { SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
 import { useState } from 'react'
 import PrimeLogo from './PrimeLogo'
 
@@ -47,12 +47,12 @@ export default function Navbar() {
             <div className="hidden sm:flex items-center space-x-3">
               <SignedOut>
                 <div className="flex items-center space-x-2">
-                  <SignInButton>
-                    <button className="btn-ghost text-sm">Sign In</button>
-                  </SignInButton>
-                  <SignUpButton>
-                    <button className="btn-primary text-sm">Get Started</button>
-                  </SignUpButton>
+                  <Link to="/sign-in" className="btn-ghost text-sm">
+                    Sign In
+                  </Link>
+                  <Link to="/sign-up" className="btn-primary text-sm">
+                    Get Started
+                  </Link>
                 </div>
               </SignedOut>
               <SignedIn>
@@ -109,22 +109,20 @@ export default function Navbar() {
             <div className="pt-4 pb-2 border-t border-slate-200 mt-4">
               <SignedOut>
                 <div className="space-y-2">
-                  <SignInButton>
-                    <button
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors duration-200"
-                    >
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton>
-                    <button
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="w-full btn-primary text-base"
-                    >
-                      Get Started
-                    </button>
-                  </SignUpButton>
+                  <Link
+                    to="/sign-in"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors duration-200"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/sign-up"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full btn-primary text-base text-center"
+                  >
+                    Get Started
+                  </Link>
                 </div>
               </SignedOut>
               <SignedIn>
