@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
+import { useAPIService } from '../services/apiService'
 
 // Local storage key prefix for user data
 const USER_DATA_PREFIX = 'prime_interviews_'
@@ -48,6 +49,7 @@ const defaultUserData = {
 
 export const useUserData = () => {
   const { user, isLoaded } = useUser()
+  const api = useAPIService()
   const [userData, setUserData] = useState(defaultUserData)
   const [loading, setLoading] = useState(true)
 
@@ -57,14 +59,41 @@ export const useUserData = () => {
     return `${USER_DATA_PREFIX}${user.id}_${dataType}`
   }
 
-  // Load user data from localStorage
-  const loadUserData = () => {
+  // Load user data from API or localStorage
+  const loadUserData = async () => {
     if (!user?.id) {
       setLoading(false)
       return
     }
 
     try {
+      // Try to load data from backend API first
+      if (api.isAuthenticated) {
+        try {
+          const userProfile = await api.getUser(user.id)
+          if (userProfile) {
+            setUserData({
+              interviews: userProfile.sessionHistory || [],
+              skillAssessments: userProfile.skillAssessments || defaultUserData.skillAssessments,
+              preferences: userProfile.preferences || defaultUserData.preferences,
+              profile: {
+                ...defaultUserData.profile,
+                ...userProfile.profile,
+                email: user.primaryEmailAddress?.emailAddress,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                avatar: user.imageUrl
+              }
+            })
+            setLoading(false)
+            return
+          }
+        } catch (error) {
+          console.warn('Failed to load user data from API, falling back to localStorage:', error)
+        }
+      }
+
+      // Fallback to localStorage
       const interviewsKey = getUserStorageKey('interviews')
       const skillsKey = getUserStorageKey('skills')
       const preferencesKey = getUserStorageKey('preferences')
@@ -113,7 +142,7 @@ export const useUserData = () => {
   }
 
   // Add new interview
-  const addInterview = (interview) => {
+  const addInterview = async (interview) => {
     const newInterview = {
       ...interview,
       id: Date.now().toString(),
@@ -122,15 +151,34 @@ export const useUserData = () => {
       createdAt: new Date().toISOString(),
       status: 'upcoming'
     }
-    
+
     const updatedInterviews = [...userData.interviews, newInterview]
     saveUserData('interviews', updatedInterviews)
-    
+
+    // Try to create session in backend if authenticated
+    if (api.isAuthenticated && interview.mentorId) {
+      try {
+        await api.createSession({
+          mentorId: interview.mentorId,
+          sessionType: interview.type,
+          scheduledAt: interview.scheduledAt,
+          duration: interview.duration,
+          meetingType: interview.meetingType || 'video',
+          recordSession: interview.recordSession || false,
+          specialRequests: interview.specialRequests || '',
+          participantEmail: user?.primaryEmailAddress?.emailAddress,
+          participantName: `${user?.firstName} ${user?.lastName}`
+        })
+      } catch (error) {
+        console.warn('Failed to create session in backend:', error)
+      }
+    }
+
     // Send email notification if enabled
     if (userData.preferences.emailNotifications) {
       sendEmailNotification(newInterview)
     }
-    
+
     return newInterview
   }
 
@@ -260,29 +308,34 @@ Prime Interviews Team
     if (isLoaded) {
       loadUserData()
     }
-  }, [user?.id, isLoaded])
+  }, [user?.id, isLoaded, api.isAuthenticated])
 
   return {
     userData,
     loading,
     user,
     isLoaded,
-    
+
     // Interview management
     addInterview,
     updateInterview,
     deleteInterview,
-    
+
     // Skill management
     updateSkillAssessment,
-    
+
     // User management
     updatePreferences,
     updateProfile,
-    
+
     // Utilities
     getUserStats,
     sendEmailNotification,
-    clearUserData
+    clearUserData,
+
+    // API integration
+    refreshUserData: async () => {
+      await loadUserData()
+    }
   }
 }
